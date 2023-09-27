@@ -2,6 +2,7 @@ package com.example.musicplayapp
 
 import android.app.*
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.drawable.Icon
 import android.media.MediaPlayer
 import android.os.IBinder
@@ -10,6 +11,7 @@ import android.provider.MediaStore.Audio.Media
 class MediaPlayerSerivce : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
+    private var receiver = LowBatteryReceiver()
     override fun onBind(intent: Intent): IBinder? {
         return null
     }
@@ -17,6 +19,7 @@ class MediaPlayerSerivce : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        initReceiver()
 
         val playIcon = Icon.createWithResource(baseContext, R.drawable.ic_baseline_play_arrow_24)
         val pauseIcon = Icon.createWithResource(baseContext, R.drawable.ic_baseline_pause_24)
@@ -96,6 +99,14 @@ class MediaPlayerSerivce : Service() {
         startForeground(100,notification)
     }
 
+    private fun initReceiver(){
+        val filter = IntentFilter().apply{
+            addAction(Intent.ACTION_BATTERY_LOW)
+        }
+        registerReceiver(receiver,filter)
+
+    }
+
     private fun createNotificationChannel(){
 
         val channel = NotificationChannel(CHANNEL_ID,"MEDIA_PLAYER",NotificationManager.IMPORTANCE_DEFAULT)
@@ -134,6 +145,7 @@ class MediaPlayerSerivce : Service() {
             release()
         }
         mediaPlayer = null
+        unregisterReceiver(receiver)
         super.onDestroy()
     }
 
